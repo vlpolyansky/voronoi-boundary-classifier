@@ -105,7 +105,7 @@ void VoronoiClassifier::perform_iterations_and_update(int niter) {
     timer t;
     for (int it = 0; it < niter; it++) {
         vec1f u = rand_vec_on_sphere(d);
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < test_n; i++) {
             cast_ray(i, u);
         }
