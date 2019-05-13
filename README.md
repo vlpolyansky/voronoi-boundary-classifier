@@ -1,4 +1,4 @@
-# Voronoi Classifier
+# Voronoi Boundary Classifier
 ICML 2019 Proceedings: [[link]]
 
 This is the initial implementation of a Voronoi Classifier - a new geometric approach for data classification. 
