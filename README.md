@@ -1,5 +1,5 @@
 # Voronoi Boundary Classifier
-ICML 2019 Proceedings: [[link]]
+ICML 2019 Proceedings: [link](http://proceedings.mlr.press/v97/polianskii19a.html).
 
 This is the initial implementation of a Voronoi Classifier - a new geometric approach for data classification. 
 
