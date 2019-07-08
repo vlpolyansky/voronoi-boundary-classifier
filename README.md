@@ -9,7 +9,7 @@ This repository contains two versions of the classifier, described in the paper:
 
 OpenCL must be installed for the main version of the algorithm. OpenMP - for an approximate version.
 
-Additionally, `zlib` is required. In Ubuntu, that would be `sudo apt install zlib1g`.
+Additionally, `zlib` is required. In Ubuntu, that would be `sudo apt install zlib1g zlib1g-dev`.
 
 In order to compile the program, one can execute the following commands:
 
