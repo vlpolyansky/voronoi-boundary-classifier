@@ -9,10 +9,6 @@
 #include <iomanip>
 #include <cstdlib>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include <unistd.h>
 
 char* get_cmd_option(char **begin, char **end, const std::string &option) {
@@ -78,31 +74,6 @@ void ensure(bool condition, const std::string &error_message) {
     }
 }
 
-#ifdef _OPENMP
-void omp_optimize_num_threads(int niter) {
-    int num_proc = omp_get_num_procs();
-    int min_blocks = (niter + num_proc - 1) / num_proc;
-    int min_num_threads = (niter + min_blocks - 1) / min_blocks;
-    min_num_threads = std::min(num_proc, min_num_threads);
-    std::cout << "Using " << min_num_threads << " threads" << std::endl;
-    omp_set_num_threads(min_num_threads);
-}
-#endif
-
-big_float pow(big_float a, int b) {
-    big_float res = 1;
-    while (b > 0) {
-        if (b & 1) {
-            res *= a;
-            b--;
-        } else {
-            a = a * a;
-            b >>= 1;
-        }
-    }
-    return res;
-}
-
 float sqr(float x) {
     return x * x;
 }
@@ -121,40 +92,3 @@ vec<std::pair<int, int>> make_pair_list(int n, bool top_right_triangle, bool no_
 }
 
 
-void simple_progress(long long i, long long niter, int multiplier) {
-    if (i == 0 || i * multiplier / niter > (i - 1) * multiplier / niter) {
-        printf("\r%2.2f%%", i * 100.0 / niter);
-        fflush(stdout);
-//        std::cout << "\r" << (i * 100.0 / niter) << "%";
-//        std::cout.flush();
-    }
-    if (i + 1 == niter) {
-        printf("\r     %%\r");
-        fflush(stdout);
-    }
-}
-
-bool _AWAITING_NEW_PROGRESS = false;
-
-void activate_next_progress() {
-    _AWAITING_NEW_PROGRESS = true;
-}
-
-void deactivate_next_progress() {
-    _AWAITING_NEW_PROGRESS = false;
-}
-
-bool reserve_progress_if_available() {
-    bool ret = false;
-#ifdef _OPENMP
-#pragma omp master
-#endif
-    {
-        ret = _AWAITING_NEW_PROGRESS;
-        if (_AWAITING_NEW_PROGRESS) {
-            _AWAITING_NEW_PROGRESS = false;
-        }
-    };
-
-    return ret;
-}
