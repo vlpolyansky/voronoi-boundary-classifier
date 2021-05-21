@@ -21,13 +21,11 @@ make
 
 Two executables will appear in `build/cpp`, namely, `VoronoiClassifier_cl` - the main algorithm, and `VoronoiClassifier_kd` - a version of the approximate algorithm, which uses a simple self-written KD-tree for an approximate nearest-neighbor search.
 
-## Input and output specification
+## Input specification
 
 Input train (and test) data files should be given as `numpy` `.npz` files with two arrays:
  - `data` - an <img src="https://latex.codecogs.com/gif.latex?N\times%12D" /> matrix of 32-bit floats describing N D-dimensional data points
  - `labels` - an <img src="https://latex.codecogs.com/gif.latex?N\times%121" /> vector of 32-bit integers from 0 to k-1.
-
-Output specification: TBD
 
 ## Available arguments
 
@@ -47,3 +45,9 @@ Available program arguments for `VoronoiClassifier_cl` and `VoronoiClassifier_kd
  - `--n_start <num=n_step>`, `--n_step <num=1>`, `--n_end <num=n_step*100>` Range definition for the "convergence" task.
  - `--weight <gpw|gcw|thres>` Weight function. Default if not provided: "gpw".
  - `--wsigma <num=1.0>`, `--wp <num=0.0f>`, `--wscale <num=0.0f>`, `--wthres <num=1e9>` Weight function parameters.
+
+## See also
+
+For a more up-to-date code related to high-dimensional Voronoi/Delaunay tesselations, please check our other repository for [https://github.com/vlpolyansky/vgt](Voronoi Graph Traversal), the modules of which can be used to easily implement or adjust the boundary classification defined here. However, at the moment, the VGT code does not support GPU computations, which is planned to be changed in the near future.
+
+Additionally, a technique called *spoke-darts*, described in [Mitchell, Scott A., et al. "Spoke-Darts for High-Dimensional Blue-Noise Sampling"](https://arxiv.org/abs/1408.1118) uses a similar sampling methodology for Delaunay graph approximation. For more information, please check out the official VoroCrust webpage: [vorocrust.sandia.gov](https://vorocrust.sandia.gov/).
