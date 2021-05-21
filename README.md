@@ -48,6 +48,6 @@ Available program arguments for `VoronoiClassifier_cl` and `VoronoiClassifier_kd
 
 ## See also
 
-For a more up-to-date code related to high-dimensional Voronoi/Delaunay tesselations, please check our other repository for [https://github.com/vlpolyansky/vgt](Voronoi Graph Traversal), the modules of which can be used to easily implement or adjust the boundary classification defined here. However, at the moment, the VGT code does not support GPU computations, which is planned to be changed in the near future.
+For a more up-to-date code related to high-dimensional Voronoi/Delaunay tesselations, please check our other repository for [Voronoi Graph Traversal](https://github.com/vlpolyansky/vgt), the modules of which can be used to easily implement or adjust the boundary classification defined here. However, at the moment, the VGT code does not support GPU computations, which is planned to be changed in the near future.
 
 Additionally, a technique called *spoke-darts*, described in [Mitchell, Scott A., et al. "Spoke-Darts for High-Dimensional Blue-Noise Sampling"](https://arxiv.org/abs/1408.1118) uses a similar sampling methodology for Delaunay graph approximation. For more information, please check out the official VoroCrust webpage: [vorocrust.sandia.gov](https://vorocrust.sandia.gov/).
