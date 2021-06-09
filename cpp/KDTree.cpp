@@ -1,8 +1,7 @@
 #include <memory>
 
-#include <memory>
 #include <algorithm>
-#include <iostream>
+#include <limits>
 
 #include "KDTree.h"
 
