@@ -44,6 +44,8 @@ public:
 
     float series_to_integral_value(int i, int k_);
 
+    void save_graph(const std::string &npy_filename);
+
 private:
     std:: mt19937 random_engine;
     std::normal_distribution<float> normal_distribution;

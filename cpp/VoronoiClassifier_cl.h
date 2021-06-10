@@ -31,6 +31,8 @@ public:
 
     float series_to_integral_value(int i, int k_);
 
+    void save_graph(const std::string &npy_filename);
+
 public:
     std::shared_ptr<Weight> weight;
 

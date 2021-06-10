@@ -33,16 +33,15 @@ AbstractVoronoiClassifierGPU::AbstractVoronoiClassifierGPU(int seed) : rand_stat
 //    std::cout << mat2f::MAX_CHUNK_SIZE << std::endl;
 }
 
-void AbstractVoronoiClassifierGPU::load_train_data(const std::string &filename, int max_n) {
-    cnpy::npz_t train_npz = cnpy::npz_load(filename);
-    cnpy::NpyArray &data_npy = train_npz["data"];
-    cnpy::NpyArray &labels_npy = train_npz["labels"];
-
+void AbstractVoronoiClassifierGPU::load_train_data(const std::string &filename, int max_n, bool nolabels) {
+    cnpy::NpyArray data_npy;
+    if (!nolabels) {
+        data_npy = cnpy::npz_load(filename, "data");
+    } else {
+        data_npy = cnpy::npy_load(filename);
+    }
     std::cout << filename << std::endl;
 
-    ensure(labels_npy.shape.size() == 1 ||
-           (labels_npy.shape.size() == 2 && labels_npy.shape[1] == 1), "Labels number of dimensions should be 1.");
-    ensure(labels_npy.word_size == sizeof(int), "Label word size should be 32-bit.");
     ensure(data_npy.shape.size() >= 2, "Data number of dimensions should be at least 2.");
     ensure(data_npy.word_size == sizeof(float), "Data word size should be 32-bit.");
 
@@ -65,8 +64,19 @@ void AbstractVoronoiClassifierGPU::load_train_data(const std::string &filename, 
         std::cout << "Train data split into " << train_data.get_chunks_num() << " chunks" << std::endl;
     train_data.fill_from({data_npy.data<float>(), data_npy.data<float>() + train_n * d});
 
-    train_labels = labels_npy.as_vec<int>();
-    train_labels.resize(train_n);
+    if (!nolabels) {
+        cnpy::NpyArray labels_npy = cnpy::npz_load(filename, "labels");
+
+        ensure(labels_npy.shape.size() == 1 ||
+               (labels_npy.shape.size() == 2 && labels_npy.shape[1] == 1), "Labels number of dimensions should be 1.");
+        ensure(labels_npy.word_size == sizeof(int), "Label word size should be 32-bit.");
+
+        train_labels = labels_npy.as_vec<int>();
+        train_labels.resize(train_n);
+    } else {
+        train_labels = vec<int>(train_n, 0);
+    }
+
     k = *std::max_element(train_labels.begin(), train_labels.end()) + 1;
 
     train_data_gpu.resizeN(train_max_chunk_size * d);
@@ -198,7 +208,7 @@ void AbstractVoronoiClassifierGPU::init_selftest() {
 }
 
 
-void AbstractVoronoiClassifierGPU::perform_iterations_and_update(int niter) {
+void AbstractVoronoiClassifierGPU::perform_iterations_and_update(int niter, bool only_graph) {
 
     precalculate_rays(niter);
 

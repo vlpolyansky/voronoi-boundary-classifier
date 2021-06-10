@@ -32,7 +32,7 @@ public:
 
     virtual void raycast(int ch_id, int it, int test_cur_chunk_size, int test_index_offset) = 0;
 
-    void load_train_data(const std::string &filename, int max_n = -1);
+    void load_train_data(const std::string &filename, int max_n = -1, bool nolabel = false);
     void load_test_data(const std::string &filename);
 
     /* Implementation specific method, doesn't include setting of a weight */
@@ -49,7 +49,7 @@ public:
     /* Use train data as test data as well (each test point tested against all other points) */
     void init_selftest();
 
-    void perform_iterations_and_update(int niter);
+    void perform_iterations_and_update(int niter, bool only_graph = false);
     void update_statistics();
     void reset_summaries();
 

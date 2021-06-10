@@ -161,3 +161,26 @@ void VoronoiClassifier::save_classification_data(const std::string &directory) {
         out.close();
     }
 }
+
+void VoronoiClassifier::save_graph(const std::string &npy_filename) {
+    std::cout << "Saving to " << npy_filename << std::endl;
+    vec<int> output;  // stores from, to, significance
+
+    for (int from = 0; from < test_n; from++) {
+        for (const auto &e: edges[from]) {
+            int to = e.first;
+            int significance = static_cast<int>(e.second); // careful, we expect weight as integer!
+            if (from < to) {
+                auto other = edges[to].find(from);
+                if (other != edges[to].end()) {
+                    significance += other->second;
+                }
+                output.push_back(from);
+                output.push_back(to);
+                output.push_back(significance);
+            }
+        }
+    }
+
+    cnpy::npy_save(npy_filename, &output[0], {output.size() / 3, 3}, "w");
+}

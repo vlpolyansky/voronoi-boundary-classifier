@@ -124,6 +124,46 @@ void run_classification(int argc, char **argv) {
     clf.save_classification_data(out_dir);
 }
 
+void approximate_delaunay_graph(int argc, char **argv) {
+    assert(argc >= 2);
+//    auto out_dir = init_out_dir(argc, argv);
+
+    std::string train_filename = argv[1];
+
+    int seed = get_cmd_option_int(argv, argv + argc, "--seed", 239);
+
+    VoronoiClassifier clf(seed);
+    bool silent = false;
+    if (cmd_option_exists(argv, argv + argc, "--silent")) {
+        silent = true;
+        clf.print_info = false;
+    }
+    if (!silent)
+        std::cout << "Reading train data" << std::endl;
+    clf.load_train_data(train_filename, -1, true);
+    clf.init_selftest();
+
+    clf.set_weight(std::make_shared<ThresholdWeight>(clf.d, 0));
+
+    clf.prepare(argc, argv);
+    clf.initialize_connectivity_feature();
+
+    if (!silent)
+        std::cout << "Starting iterations" << std::endl;
+    timer iterations_timer;
+    int niter_a = get_cmd_option_int(argv, argv + argc, "--niter_a", 1);
+    int niter_b = get_cmd_option_int(argv, argv + argc, "--niter_b", 100);
+    for (int i = 0; i < niter_b; i++) {
+        clf.perform_iterations_and_update(niter_a);
+        if (!silent)
+            std::cout << (i + 1) * niter_a << ": " << clf.accuracy << std::endl;
+    }
+    if (!silent)
+        std::cout << "All iterations took " << iterations_timer.elapsed() << " sec." << std::endl;
+
+    clf.save_graph(get_cmd_option_string(argv, argv + argc, "--out", "graph.npy"));
+}
+
 void save_areas(int argc, char **argv) {
     assert(argc >= 2);
     auto out_dir = init_out_dir(argc, argv);
@@ -228,6 +268,9 @@ int main(int argc, char **argv) {
         std::cout << "Starting dxdx calculation task." << std::endl;
         calc_dxdx(argc, argv);
 #endif
+    } else if (task == "delaunay") {
+        std::cout << "Starting delaunay estimation task." << std::endl;
+        approximate_delaunay_graph(argc, argv);
     } else {
         std::cerr << "Unknown task: " << task << std::endl;
     }

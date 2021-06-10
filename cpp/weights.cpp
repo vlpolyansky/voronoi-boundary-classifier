@@ -13,7 +13,7 @@ float PolynomialWeight::estimate(float z) {
 ThresholdWeight::ThresholdWeight(int d, float threshold) : Weight(d), threshold(threshold) {}
 
 float ThresholdWeight::estimate(float z) {
-    return z < threshold ? 1.f * (float)std::pow(z, d) : 0.f;
+    return z < threshold ? 1.f : 0.f;
 }
 
 GaussianPolynomialWeight::GaussianPolynomialWeight(int d, float p, float sigma, float scale) : Weight(d), p(p), sigma(sigma), scale(scale) {}
