@@ -22,3 +22,9 @@ target_link_libraries(VoronoiClassifier_kd libutils cnpy)
 target_compile_definitions(VoronoiClassifier_kd PUBLIC VCTYPE=KD)
 #add_custom_command(TARGET VoronoiClassifier_kd POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:VoronoiClassifier_kd> ${PROJECT_SOURCE_DIR})
+
+
+add_executable(shortest_distances
+        tools/_shortest_distances.cpp ${GEN_SOURCES})
+target_link_libraries(shortest_distances cnpy)
+set_target_properties(shortest_distances PROPERTIES EXCLUDE_FROM_ALL TRUE)

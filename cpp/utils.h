@@ -5,6 +5,8 @@
 #include <cmath>
 #include <string>
 
+#include "tqdm.h"
+
 #define PI 3.141592653589793238462643383279
 #define PI_f 3.141592653589793238462643383279f
 
@@ -33,3 +35,18 @@ float sqr(float x);
 
 vec<std::pair<int, int>> make_pair_list(int n, bool top_right_triangle = false, bool no_diagonal = false);
 
+
+
+// -- tqdm --
+
+class my_tqdm {
+public:
+    explicit my_tqdm(int max_value);
+    tqdm& bar();
+    int& max_value();
+    void atomic_iteration();
+private:
+    tqdm _bar;
+    int _counter;
+    int _max_value;
+};

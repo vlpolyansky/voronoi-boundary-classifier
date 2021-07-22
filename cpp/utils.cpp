@@ -92,3 +92,20 @@ vec<std::pair<int, int>> make_pair_list(int n, bool top_right_triangle, bool no_
 }
 
 
+my_tqdm::my_tqdm(int max_value) : _bar(), _max_value(max_value), _counter(0) {
+    _bar.disable_colors();
+    _bar.set_width(10);
+}
+
+tqdm &my_tqdm::bar() {
+    return _bar;
+}
+
+int &my_tqdm::max_value() {
+    return _max_value;
+}
+
+void my_tqdm::atomic_iteration() {
+    #pragma omp critical
+    _bar.progress(_counter++, _max_value);
+}
