@@ -31,8 +31,12 @@ int main(int argc, char **argv) {
     cnpy::NpyArray edges_npy = cnpy::npy_load(edges_filename);
     ensure(edges_npy.shape.size() == 2, "Edges should be represented as a matrix.");
     ensure(edges_npy.word_size == sizeof(int), "Edges word size should be 32 bit.");
-    ensure(edges_npy.shape[1] == 2, "Edges should be of size (M, 2)");
+    ensure(edges_npy.shape[1] >= 2, "Edges should be of size (M, 2)");
+    if(edges_npy.shape[1] > 2) {
+        std::cout << "Warning: using only columns 0 and 1 of edges matrix" << std::endl;
+    }
     int n_edges = edges_npy.shape[0];
+    int edge_width = edges_npy.shape[1];
 
     vec<int> edges_list = edges_npy.as_vec<int>();
 
@@ -46,15 +50,15 @@ int main(int argc, char **argv) {
     #pragma omp parallel for
     for (int i = 0; i < n_edges; i++) {
         bar.atomic_iteration();
-        int u = edges_list[i * 2];
-        int v = edges_list[i * 2 + 1];
+        int u = edges_list[i * edge_width];
+        int v = edges_list[i * edge_width + 1];
         float w = length(range<float>(data.begin() + u * data_dim, data.begin() + (u + 1) * data_dim) -
                 range<float>(data.begin() + v * data_dim, data.begin() + (v + 1) * data_dim));
         weights[i] = w;
     }
     for (int i = 0; i < n_edges; i++) {
-        int u = edges_list[i * 2];
-        int v = edges_list[i * 2 + 1];
+        int u = edges_list[i * edge_width];
+        int v = edges_list[i * edge_width + 1];
         float w = weights[i];
         edges[u].push_back(std::make_pair(v, w));
         edges[v].push_back(std::make_pair(u, w));
