@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <cstring>
 #include <utility>
 #include <algorithm>
 
@@ -129,6 +130,15 @@ void approximate_delaunay_graph(int argc, char **argv) {
 //    auto out_dir = init_out_dir(argc, argv);
 
     std::string train_filename = argv[1];
+    std::string test_filename = "";
+    if (argc == 2 || !strncmp(argv[2], "--", 2)) {
+        std::cout << "Computing the graph on single data " << train_filename << std::endl;
+    } else {
+        test_filename = argv[2];
+        std::cout << "Computing the graph edges from " << test_filename << " inserted into "
+                << train_filename << std::endl;
+    }
+    bool selftest = test_filename.empty();
 
     int seed = get_cmd_option_int(argv, argv + argc, "--seed", 239);
 
@@ -141,7 +151,13 @@ void approximate_delaunay_graph(int argc, char **argv) {
     if (!silent)
         std::cout << "Reading train data" << std::endl;
     clf.load_train_data(train_filename, -1, true);
-    clf.init_selftest();
+    if (selftest) {
+        clf.init_selftest();
+    } else {
+        clf.load_test_data(test_filename, true);
+    }
+
+    bool save_distances = cmd_option_exists(argv, argv + argc, "--distances");
 
     clf.set_weight(std::make_shared<ThresholdWeight>(clf.d, 0));
 
@@ -161,7 +177,7 @@ void approximate_delaunay_graph(int argc, char **argv) {
     if (!silent)
         std::cout << "All iterations took " << iterations_timer.elapsed() << " sec." << std::endl;
 
-    clf.save_graph(get_cmd_option_string(argv, argv + argc, "--out", "graph.npy"));
+    clf.save_graph(get_cmd_option_string(argv, argv + argc, "--out", "graph.npy"), save_distances);
 }
 
 void save_areas(int argc, char **argv) {

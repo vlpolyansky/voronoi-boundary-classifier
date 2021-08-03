@@ -16,7 +16,12 @@ int main(int argc, char **argv) {
 
     std::string distances_filename = get_cmd_option_string(argv, argv + argc, "--out", "distances.npy");
     bool is_sparse = cmd_option_exists(argv, argv + argc, "--sparse");
+
+    ensure(!is_sparse, "Sparse output no supported [anymore...]");
+
     int max_neighbors = get_cmd_option_int(argv, argv + argc, "--nneigh", -1);
+
+    ensure(max_neighbors < 0, "Max dist not fully supported [yet...]");
 
     cnpy::NpyArray data_npy = cnpy::npy_load(data_filename);
     ensure(data_npy.shape.size() == 2, "Data should be represented as a matrix.");
@@ -64,8 +69,9 @@ int main(int argc, char **argv) {
         edges[v].push_back(std::make_pair(u, w));
     }
     bar.bar().finish();
-
-    vec<std::unordered_map<int, std::pair<float, bool>>> distances(n_points);
+//
+//    vec<std::unordered_map<int, std::pair<float, bool>>> distances(n_points);
+    vec<vec<float>> distances(n_points);
 
     std::cout << "Computing shortest distances" << std::endl;
     bar = my_tqdm(n_points);
@@ -74,30 +80,28 @@ int main(int argc, char **argv) {
     for (int s = 0; s < n_points; s++) {
         bar.atomic_iteration();
 
-        std::unordered_map<int, std::pair<float, bool>> distances_to;   // (dist, is_final)
-        distances_to[s] = std::make_pair(.0f, false);
+//        std::unordered_map<int, std::pair<float, bool>> distances_to;   // (dist, is_final)
+        vec<float> distances_to(n_points, -1);
+        distances_to[s] = 0;
 
         std::set<std::pair<float, int>> q;
         q.insert(std::make_pair(.0f, s));
         for (int it = 0; !q.empty() && (max_neighbors == -1 || it < max_neighbors + 1); it++) {
             int u = q.begin()->second;
-            float d_u = q.begin()->first;
+            float d_u = distances_to[u];
 //            float d_u = distances_to.find(u)->second.first;
-            distances_to[u].second = true;  // is_final := true
             q.erase(q.begin());
 
             for (const std::pair<int, float> &p: edges[u]) {
                 int v = p.first;
                 float w = p.second;
 
-                float d_v = distances_to.find(v) == distances_to.end() ?
-                        std::numeric_limits<float>::infinity() :
-                        distances_to[v].first;
+                float d_v = distances_to[v];
 
 
-                if (d_v > d_u + w) {
+                if (d_v < 0 || d_v > d_u + w) {
                     q.erase(std::make_pair(d_v, v));
-                    distances_to[v] = std::make_pair(d_u + w, distances_to[v].second);
+                    distances_to[v] = d_u + w;
                     // can add parent info here
                     q.insert(std::make_pair(d_u + w, v));
                 }
@@ -110,25 +114,22 @@ int main(int argc, char **argv) {
 
     std::cout << "Saving results to " << distances_filename << std::endl;
     if (is_sparse) {
-        vec<float> output;
-        for (int u = 0; u < n_points; u++) {
-            for (const auto& p: distances[u]) {
-                if (p.second.second) {
-                    output.push_back(float(u));
-                    output.push_back(float(p.first));
-                    output.push_back(p.second.first);
-                }
-            }
-        }
-        cnpy::npy_save(distances_filename, output.data(), {output.size() / 3, 3});
+//        vec<float> output;
+//        for (int u = 0; u < n_points; u++) {
+//            for (const auto& p: distances[u]) {
+//                if (p.second.second) {
+//                    output.push_back(float(u));
+//                    output.push_back(float(p.first));
+//                    output.push_back(p.second.first);
+//                }
+//            }
+//        }
+//        cnpy::npy_save(distances_filename, output.data(), {output.size() / 3, 3});
     } else {
         vec<float> output(n_points * n_points, -1);
         for (int u = 0; u < n_points; u++) {
-            for (const auto& p: distances[u]) {
-                if (p.second.second) {
-                    output[u * n_points + p.first] = p.second.first;
-                    output[p.first * n_points + u] = p.second.first;
-                }
+            for (int v = 0; v < n_points; v++) {
+                output[u * n_points + v] = distances[u][v];
             }
         }
         cnpy::npy_save(distances_filename, output.data(), {size_t(n_points), size_t(n_points)});

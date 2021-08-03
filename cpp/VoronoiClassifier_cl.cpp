@@ -162,7 +162,7 @@ void VoronoiClassifier::save_classification_data(const std::string &directory) {
     }
 }
 
-void VoronoiClassifier::save_graph(const std::string &npy_filename) {
+void VoronoiClassifier::save_graph(const std::string &npy_filename, bool save_distances) {
     std::cout << "Saving to " << npy_filename << std::endl;
     vec<int> output;  // stores from, to, significance
 
@@ -178,9 +178,14 @@ void VoronoiClassifier::save_graph(const std::string &npy_filename) {
                 output.push_back(from);
                 output.push_back(to);
                 output.push_back(significance);
+                if (save_distances) {
+                    output.push_back(0);   // todo include distances?
+                }
             }
         }
     }
 
-    cnpy::npy_save(npy_filename, &output[0], {output.size() / 3, 3}, "w");
+    size_t width = 3 + save_distances;
+
+    cnpy::npy_save(npy_filename, &output[0], {output.size() / width, width}, "w");
 }

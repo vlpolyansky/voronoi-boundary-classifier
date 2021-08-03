@@ -40,7 +40,6 @@ void AbstractVoronoiClassifierGPU::load_train_data(const std::string &filename, 
     } else {
         data_npy = cnpy::npy_load(filename);
     }
-    std::cout << filename << std::endl;
 
     ensure(data_npy.shape.size() >= 2, "Data number of dimensions should be at least 2.");
     ensure(data_npy.word_size == sizeof(float), "Data word size should be 32-bit.");
@@ -87,15 +86,16 @@ void AbstractVoronoiClassifierGPU::load_train_data(const std::string &filename, 
     sph_area = sphere_area(d - 1);
 }
 
-void AbstractVoronoiClassifierGPU::load_test_data(const std::string &filename) {
-    cnpy::npz_t test_npz = cnpy::npz_load(filename);
-    cnpy::NpyArray &data_npy = test_npz["data"];
-    cnpy::NpyArray &labels_npy = test_npz["labels"];
+void AbstractVoronoiClassifierGPU::load_test_data(const std::string &filename, bool nolabels) {
+    cnpy::NpyArray data_npy;
+    if (!nolabels) {
+        data_npy = cnpy::npz_load(filename, "data");
+    } else {
+        data_npy = cnpy::npy_load(filename);
+    }
 
     ensure(data_npy.shape.size() == 2, "Data number of dimensions be 2.");
     ensure(data_npy.word_size == sizeof(float), "Data word size should be 32-bit.");
-    ensure(labels_npy.shape.size() == 1, "Labels number of dimensions should be 1.");
-    ensure(labels_npy.word_size == sizeof(int), "Label word size should be 32-bit.");
 
     test_n = data_npy.shape[0];
     ensure(d == data_npy.shape[1], "Dimensionality of the data should be the same.");
@@ -106,7 +106,15 @@ void AbstractVoronoiClassifierGPU::load_test_data(const std::string &filename) {
         std::cout << "Test data split into " << test_data.get_chunks_num() << " chunks" << std::endl;
     test_data.fill_from({data_npy.data<float>(), data_npy.data<float>() + data_npy.num_vals});
 
-    test_labels = labels_npy.as_vec<int>();
+    if (!nolabels) {
+        cnpy::NpyArray labels_npy = cnpy::npz_load(filename, "labels");
+        ensure(labels_npy.shape.size() == 1, "Labels number of dimensions should be 1.");
+        ensure(labels_npy.word_size == sizeof(int), "Label word size should be 32-bit.");
+        test_labels = labels_npy.as_vec<int>();
+
+    } else {
+        test_labels = vec<int>(test_n, 0);
+    }
 
     test_data_gpu.resizeN(test_max_chunk_size * d);
 

@@ -32,8 +32,8 @@ public:
 
     virtual void raycast(int ch_id, int it, int test_cur_chunk_size, int test_index_offset) = 0;
 
-    void load_train_data(const std::string &filename, int max_n = -1, bool nolabel = false);
-    void load_test_data(const std::string &filename);
+    void load_train_data(const std::string &filename, int max_n = -1, bool nolabels = false);
+    void load_test_data(const std::string &filename, bool nolabels = false);
 
     /* Implementation specific method, doesn't include setting of a weight */
     void prepare(int argc, char **argv);

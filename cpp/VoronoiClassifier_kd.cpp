@@ -315,10 +315,12 @@ void VoronoiClassifier::save_graph(const std::string &npy_filename) {
         for (const auto &e: edges[from]) {
             int to = e.first;
             int significance = static_cast<int>(e.second);
-            if (from < to) {
-                auto other = edges[to].find(from);
-                if (other != edges[to].end()) {
-                    significance += other->second;
+            if (from < to || !selftest) {
+                if (selftest) {
+                    auto other = edges[to].find(from);
+                    if (other != edges[to].end()) {
+                        significance += other->second;
+                    }
                 }
                 output.push_back(from);
                 output.push_back(to);
