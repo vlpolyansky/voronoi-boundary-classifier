@@ -154,10 +154,12 @@ void approximate_delaunay_graph(int argc, char **argv) {
     if (selftest) {
         clf.init_selftest();
     } else {
+        if (!silent)
+            std::cout << "Reading test data" << std::endl;
         clf.load_test_data(test_filename, true);
     }
 
-    bool save_distances = cmd_option_exists(argv, argv + argc, "--distances");
+    std::string distances_output = get_cmd_option_string(argv, argv + argc, "--out_dist", "");
 
     clf.set_weight(std::make_shared<ThresholdWeight>(clf.d, 0));
 
@@ -177,7 +179,7 @@ void approximate_delaunay_graph(int argc, char **argv) {
     if (!silent)
         std::cout << "All iterations took " << iterations_timer.elapsed() << " sec." << std::endl;
 
-    clf.save_graph(get_cmd_option_string(argv, argv + argc, "--out", "graph.npy"), save_distances);
+    clf.save_graph(get_cmd_option_string(argv, argv + argc, "--out", "graph.npy"), distances_output);
 }
 
 void save_areas(int argc, char **argv) {

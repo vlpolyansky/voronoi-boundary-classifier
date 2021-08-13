@@ -162,30 +162,53 @@ void VoronoiClassifier::save_classification_data(const std::string &directory) {
     }
 }
 
-void VoronoiClassifier::save_graph(const std::string &npy_filename, bool save_distances) {
+void VoronoiClassifier::save_graph(const std::string &npy_filename, const std::string &distances_filename) {
     std::cout << "Saving to " << npy_filename << std::endl;
     vec<int> output;  // stores from, to, significance
+    vec<float> distances;
 
-    for (int from = 0; from < test_n; from++) {
-        for (const auto &e: edges[from]) {
-            int to = e.first;
-            int significance = static_cast<int>(e.second); // careful, we expect weight as integer!
-            if (from < to) {
-                auto other = edges[to].find(from);
-                if (other != edges[to].end()) {
-                    significance += other->second;
-                }
-                output.push_back(from);
-                output.push_back(to);
-                output.push_back(significance);
-                if (save_distances) {
-                    output.push_back(0);   // todo include distances?
+    if (selftest) {
+        // this is a quick fix for selftest
+        for (int from = 0; from < test_n; from++) {
+            for (const auto &e: edges[from]) {
+                int to = e.first;
+                if (from > to && edges[to].find(from) == edges[to].end()) {
+                    edges[to][from] = 0;
                 }
             }
         }
     }
 
-    size_t width = 3 + save_distances;
+    int prefix = selftest ? 0 : train_n;
 
+    for (int from = 0; from < test_n; from++) {
+        for (const auto &e: edges[from]) {
+            int to = e.first;
+            int significance = static_cast<int>(e.second); // careful, we expect weight as integer!
+            if (from < to || !selftest) {
+                if (selftest) {
+                    auto other = edges[to].find(from);
+                    if (other != edges[to].end()) {
+                        significance += other->second;
+                    }
+                }
+                ensure(significance > 0, "coverage is expected to be greater than zero");
+                output.push_back(from + prefix);
+                output.push_back(to);
+                output.push_back(significance);
+                if (!distances_filename.empty()) {
+                    distances.push_back(sqrt(dxdx_precalc(from, to)));
+                }
+            }
+        }
+    }
+
+    size_t width = 3;
     cnpy::npy_save(npy_filename, &output[0], {output.size() / width, width}, "w");
+
+    if (!distances_filename.empty()) {
+        std::cout << "Saving edge lengths to " << distances_filename << std::endl;
+        cnpy::npy_save(distances_filename, &distances[0], {distances.size(), 1}, "w");
+
+    }
 }
