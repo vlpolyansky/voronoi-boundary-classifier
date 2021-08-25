@@ -164,8 +164,7 @@ void VoronoiClassifier::save_classification_data(const std::string &directory) {
 
 void VoronoiClassifier::save_graph(const std::string &npy_filename, const std::string &distances_filename) {
     std::cout << "Saving to " << npy_filename << std::endl;
-    vec<int> output;  // stores from, to, significance
-    vec<float> distances;
+    std::cout << "Also, edge lengths to " << distances_filename << std::endl;
 
     if (selftest) {
         // this is a quick fix for selftest
@@ -180,8 +179,15 @@ void VoronoiClassifier::save_graph(const std::string &npy_filename, const std::s
     }
 
     int prefix = selftest ? 0 : train_n;
+    size_t width = 3;
+    std::string mode = "w";
+
+    my_tqdm bar(test_n);
 
     for (int from = 0; from < test_n; from++) {
+        bar.atomic_iteration();
+        vec<int> output;  // stores from, to, significance
+        vec<float> distances;
         for (const auto &e: edges[from]) {
             int to = e.first;
             int significance = static_cast<int>(e.second); // careful, we expect weight as integer!
@@ -201,14 +207,14 @@ void VoronoiClassifier::save_graph(const std::string &npy_filename, const std::s
                 }
             }
         }
+
+        cnpy::npy_save(npy_filename, &output[0], {output.size() / width, width}, mode);
+
+        if (!distances_filename.empty()) {
+            cnpy::npy_save(distances_filename, &distances[0], {distances.size(), 1}, mode);
+        }
+        mode = "a";
     }
+    bar.bar().finish();
 
-    size_t width = 3;
-    cnpy::npy_save(npy_filename, &output[0], {output.size() / width, width}, "w");
-
-    if (!distances_filename.empty()) {
-        std::cout << "Saving edge lengths to " << distances_filename << std::endl;
-        cnpy::npy_save(distances_filename, &distances[0], {distances.size(), 1}, "w");
-
-    }
 }
